@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Invoice Builder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#1a1a1e;--mute:#6b6b6b;--accent:#4f46e5;--lime:#dfff5e;--panel:#f4f4f0;--line:#e5e5e0;--bg:#ededE8}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);font-family:Inter,system-ui,-apple-system,sans-serif;color:var(--ink);-webkit-print-color-adjust:exact;print-color-adjust:exact}
+label{display:block;font-size:10px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--mute)}
+
+/* toolbar */
+.bar{max-width:794px;margin:0 auto;padding:20px 16px;display:flex;flex-wrap:wrap;gap:12px 16px;align-items:center;justify-content:space-between}
+.bar h1{margin:0;font-size:13px;letter-spacing:.2em;text-transform:uppercase;color:var(--mute)}
+.bar p{margin:2px 0 0;font-size:14px;color:var(--mute)}
+.ctl{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.ctl select,.ctl input{height:40px;border:1px solid #d6d6d0;border-radius:999px;background:#fff;padding:0 14px;font:600 13px Inter,sans-serif;color:var(--ink)}
+.ctl input{width:84px}
+.btn{height:40px;border:0;border-radius:999px;padding:0 20px;font:700 14px Inter,sans-serif;cursor:pointer;background:#fff;color:var(--ink);border:1px solid #d6d6d0}
+.btn.dark{background:var(--ink);color:#fff;border-color:var(--ink)}
+.btn:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid #b9b5f5;outline-offset:2px}
+
+/* page */
+.page{position:relative;width:794px;max-width:calc(100% - 24px);min-height:1123px;margin:0 auto 40px;background:#fff;border-radius:24px;overflow:hidden;display:flex;flex-direction:column;padding:44px 48px 0}
+.page::before{content:"";position:absolute;top:0;right:0;width:40%;height:6px;background:var(--lime)}
+.ed{display:inline-block;min-width:2ch;border-radius:6px;outline:none;transition:background .15s}
+.ed:hover{background:rgba(79,70,229,.06)}
+.ed:focus{background:rgba(79,70,229,.1)}
+.ed:empty::before{content:attr(data-ph);color:#b8b8b8}
+.ed.multi{display:block;white-space:pre-wrap}
+
+.brand{display:flex;align-items:center;gap:12px}
+.logo{width:36px;height:36px;border-radius:10px;background:var(--accent);color:#fff;font-weight:700;font-size:14px;display:grid;place-items:center;text-transform:uppercase}
+.logo .ed:hover,.logo .ed:focus{background:rgba(255,255,255,.2)}
+.brand b{display:block;font-size:16px;text-transform:uppercase}
+.brand small{display:block;font-size:10px;letter-spacing:.2em;color:var(--mute);font-weight:500;text-transform:uppercase}
+
+.kicker{margin-top:48px;font-size:11px;font-weight:700;letter-spacing:.24em;color:var(--accent);text-transform:uppercase}
+.title{margin:6px 0 8px;font-size:clamp(52px,11.6vw,92px);font-weight:800;letter-spacing:-.045em;line-height:1.05}
+.title .dot{color:var(--accent)}
+.subline{font-size:14px;color:var(--mute);margin-bottom:22px}
+
+.meta{display:grid;grid-template-columns:1fr 1fr;gap:20px 24px;background:var(--panel);border-radius:22px;padding:24px}
+.meta .ed{font-size:15px;font-weight:700;margin-top:6px}
+.meta .acc{color:var(--accent)}
+.parties{display:grid;grid-template-columns:1fr 1fr;gap:24px;padding:32px 0 28px;border-bottom:1px solid var(--line);margin:0 -48px;padding-left:48px;padding-right:48px}
+.pn{margin:8px 0 4px;font-size:18px;font-weight:700}
+.pm{font-size:13px;color:var(--mute);line-height:1.55}
+
+/* table */
+.tbl{overflow-x:auto;margin-top:30px}
+.tin{min-width:620px}
+.row{display:grid;grid-template-columns:minmax(0,1fr) 72px 72px 98px 92px;gap:8px;align-items:center}
+.head{padding-bottom:14px;border-bottom:1.5px solid var(--ink)}
+.head span{font-size:10px;font-weight:700;letter-spacing:.18em;color:var(--mute)}
+.head span:last-child{text-align:right}
+.item{padding:15px 0;border-bottom:1px solid var(--line)}
+.item:last-of-type{border-bottom:1.5px solid var(--ink)}
+.svc{display:grid;grid-template-columns:28px minmax(0,1fr);align-items:start}
+.num{all:unset;cursor:pointer;font-size:12px;font-weight:700;color:var(--accent);padding-top:4px;position:relative;height:20px;width:24px}
+.num i{display:none;font-style:normal;position:absolute;inset:4px 0 auto 0;color:#d33}
+.item:hover .num b{display:none}.item:hover .num i{display:block}
+.svc .t{font-size:16px;font-weight:700}
+.svc .d{font-size:11px;color:var(--mute);margin-top:2px;display:block}
+.cell{position:relative}
+.pill{width:100%;height:36px;border:0;border-radius:12px;background:var(--panel);text-align:right;padding:0 12px;font:600 14px Inter,sans-serif;color:var(--ink);-moz-appearance:textfield}
+.pill::-webkit-inner-spin-button,.pill::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+.pill:focus{outline:2px solid #b9b5f5}
+.cell em{position:absolute;left:11px;top:50%;transform:translateY(-50%);font-style:normal;font-size:11px;color:var(--mute)}
+.amt{text-align:right;font-size:18px;font-weight:800;white-space:nowrap}
+.add{all:unset;cursor:pointer;display:inline-block;margin-top:16px;font-size:13px;font-weight:700;color:var(--accent)}
+.add:hover{text-decoration:underline}
+
+.note{margin-top:22px;border:1.5px solid #dadad5;border-radius:24px;padding:20px 24px}
+.note .ed{margin-top:8px;font-size:12.5px;line-height:1.5;color:#55555a;width:100%}
+
+.sub{display:flex;justify-content:space-between;margin-top:18px;font-size:14px;color:var(--mute)}
+.sub b{color:var(--ink)}
+.sub+.sub{margin-top:8px}
+.total{margin-top:14px;display:flex;justify-content:space-between;align-items:center;gap:12px;background:var(--accent);color:#fff;border-radius:999px;padding:0 28px;height:62px}
+.total label{color:rgba(255,255,255,.85);letter-spacing:.26em;font-size:11px}
+.total #due{font-size:12px;color:#c7c5f5;margin-top:3px}
+.total #total{font-size:clamp(24px,5vw,34px);font-weight:800;letter-spacing:-.02em}
+
+.foot{margin:36px -48px 0;margin-top:auto;padding:22px 48px 20px;background:var(--ink);color:#fff;display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.page>.foot{margin-top:auto}
+.foot label{color:#8a8a8f}
+.foot .ed{margin-top:8px;font-size:13px;font-weight:600;display:block}
+.foot .ed:hover,.foot .ed:focus{background:rgba(255,255,255,.12)}
+.spacer{height:32px;flex:none}
+
+@media(max-width:700px){
+  .page{padding:32px 20px 0}
+  .parties{margin:0 -20px;padding-left:20px;padding-right:20px}
+  .foot{margin-left:-20px;margin-right:-20px;padding:22px 20px;grid-template-columns:1fr}
+  .total{padding:0 18px}
+}
+
+@page{size:A4;margin:0}
+@media print{
+  body{background:#fff}
+  .bar,.add,.num i{display:none!important}
+  html,body{height:296mm;overflow:hidden}
+  .page{zoom:var(--f,1);width:calc(210mm / var(--f,1));max-width:none;min-height:calc(296mm / var(--f,1));height:calc(296mm / var(--f,1));margin:0;border-radius:0;overflow:hidden;break-inside:avoid;page-break-after:avoid}
+  .title{font-size:92px}
+  .ed:hover,.ed:focus{background:none!important}
+  .ed:empty::before{content:none}
+  .tbl{overflow:visible}
+  .item:hover .num b{display:block}
+}
+</style>
+</head>
+<body>
+
+<div class="bar">
+  <div><h1>Invoice builder</h1><p>Click any text to edit it, then save as PDF.</p></div>
+  <div class="ctl">
+    <select id="cur" aria-label="Currency">
+      <option value="INR">INR ₹</option><option value="USD">USD $</option><option value="EUR">EUR €</option><option value="GBP">GBP £</option>
+    </select>
+    <input id="tax" type="number" min="0" step="any" placeholder="Tax %" aria-label="Tax percent">
+    <button class="btn" id="reset">Reset</button>
+    <button class="btn dark" id="print">Print / Save PDF</button>
+  </div>
+</div>
+
+<main class="page" id="page"></main>
+
+<script>
+const KEY='invoice-builder-v1';
+const SYM={INR:'₹',USD:'$',EUR:'€',GBP:'£'};
+const DEF={
+  currency:'INR',tax:0,
+  brand:{initials:'AS',name:'Aswani',role:'Freelance Digital Marketer'},
+  label:'Digital marketing services',
+  title:'Invoice',
+  subline:'Meta ads management, creatives & performance reporting for June 2025.',
+  meta:{no:'AS-2025-042',issue:'24 May 2025',period:'01–30 June',due:'31 May 2025'},
+  client:{name:'Northstar Coffee Co.',contact:'Maya Bennett',email:'hello@northstar.co'},
+  me:{name:'Aswani',web:'aswani.digital',phone:'+1 202 555 0184'},
+  items:[
+    {title:'Meta Ads Management',desc:'Facebook & Instagram · Campaign setup & targeting',qty:4,days:30,rate:12500},
+    {title:'Social Media Creatives',desc:'Custom static poster design · Includes 2 revisions',qty:8,days:1,rate:800},
+    {title:'Performance Report',desc:'Monthly analytics and optimization summary',qty:1,days:30,rate:3500}
+  ],
+  note:'Ad spend is paid directly by the client to Meta and is not included in this invoice. The management fee covers campaign setup, audience research, daily monitoring and weekly optimization. Poster pricing includes design only.',
+  pay:{method:'Bank transfer / UPI',account:'Aswani · 0042 8891 72',terms:'100% advance · Work starts after payment'}
+};
+const $=s=>document.querySelector(s);
+let S=load();
+function load(){try{const s=JSON.parse(localStorage.getItem(KEY));if(s&&s.items)return s}catch(e){}return structuredClone(DEF)}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+const get=p=>p.split('.').reduce((o,k)=>o&&o[k],S);
+const set=(p,v)=>{const a=p.split('.'),l=a.pop();a.reduce((o,k)=>o[k],S)[l]=v};
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fmt=n=>new Intl.NumberFormat(S.currency==='INR'?'en-IN':'en-US',{style:'currency',currency:S.currency,minimumFractionDigits:0,maximumFractionDigits:2}).format(n);
+const ed=(p,cls='',ph='Click to edit')=>`<span class="ed ${cls}" contenteditable="plaintext-only" spellcheck="false" data-p="${p}" data-ph="${ph}">${esc(get(p))}</span>`;
+const edi=(i,f,cls)=>`<span class="ed ${cls}" contenteditable="plaintext-only" spellcheck="false" data-i="${i}" data-f="${f}" data-ph="${f==='title'?'Service name':'Scope'}">${esc(S.items[i][f])}</span>`;
+
+function render(){
+  $('#cur').value=S.currency;$('#tax').value=S.tax||'';
+  const sym=SYM[S.currency];
+  $('#page').innerHTML=`
+  <header class="brand">
+    <div class="logo">${ed('brand.initials','','AS')}</div>
+    <div><b>${ed('brand.name')}</b><small>${ed('brand.role')}</small></div>
+  </header>
+  <div class="kicker">${ed('label')}</div>
+  <h2 class="title">${ed('title','','Invoice')}<span class="dot">.</span></h2>
+  <div class="subline">${ed('subline','multi')}</div>
+
+  <section class="meta">
+    ${[['Invoice no.','meta.no'],['Issue date','meta.issue'],['Service period','meta.period'],['Payment due','meta.due','acc']]
+      .map(([l,p,c])=>`<div><label>${l}</label>${ed(p,c||'')}</div>`).join('')}
+  </section>
+
+  <section class="parties">
+    <div><label>Prepared for</label><div class="pn">${ed('client.name')}</div><div class="pm">${ed('client.contact','multi')}${ed('client.email','multi')}</div></div>
+    <div><label>Prepared by</label><div class="pn">${ed('me.name')}</div><div class="pm">${ed('me.web','multi')}${ed('me.phone','multi')}</div></div>
+  </section>
+
+  <section class="tbl"><div class="tin">
+    <div class="row head"><span>SERVICE &amp; SCOPE</span><span>POSTERS</span><span>RUN DAYS</span><span>RATE / POSTER</span><span>AMOUNT</span></div>
+    ${S.items.map((it,i)=>`
+    <div class="row item">
+      <div class="svc">
+        <button class="num" data-rm="${i}" title="Remove this service" aria-label="Remove service ${i+1}"><b>${String(i+1).padStart(2,'0')}</b><i>×</i></button>
+        <div>${edi(i,'title','t')}${edi(i,'desc','d')}</div>
+      </div>
+      <div class="cell"><input class="pill" type="number" min="0" step="any" data-i="${i}" data-f="qty" value="${esc(it.qty)}" aria-label="Posters"></div>
+      <div class="cell"><input class="pill" type="number" min="0" step="any" data-i="${i}" data-f="days" value="${esc(it.days)}" aria-label="Run days"></div>
+      <div class="cell"><em>${sym}</em><input class="pill" type="number" min="0" step="any" data-i="${i}" data-f="rate" value="${esc(it.rate)}" aria-label="Rate"></div>
+      <div class="amt" data-amt="${i}"></div>
+    </div>`).join('')}
+    <button class="add" id="add">+ Add another service</button>
+  </div></section>
+
+  <section class="note"><label>Campaign note</label>${ed('note','multi')}</section>
+
+  <div class="sub"><span>Subtotal</span><b id="sub"></b></div>
+  <div class="sub" id="taxRow" hidden><span id="taxL"></span><b id="taxV"></b></div>
+  <div class="total"><div><label>Total due</label><div id="due"></div></div><div id="total"></div></div>
+
+  <div class="spacer"></div>
+  <footer class="foot">
+    <div><label>Payment method</label>${ed('pay.method')}</div>
+    <div><label>Account details</label>${ed('pay.account')}</div>
+    <div><label>Terms</label>${ed('pay.terms','multi')}</div>
+  </footer>`;
+  totals();
+}
+
+function totals(){
+  let sub=0;
+  S.items.forEach((it,i)=>{const a=(+it.qty||0)*(+it.rate||0);sub+=a;const el=document.querySelector(`[data-amt="${i}"]`);if(el)el.textContent=fmt(a)});
+  const t=+S.tax||0,tax=sub*t/100;
+  $('#sub').textContent=fmt(sub);
+  $('#taxRow').hidden=!(t>0);
+  $('#taxL').textContent=`Tax (${t}%)`;$('#taxV').textContent=fmt(tax);
+  $('#total').textContent=fmt(sub+tax);
+  $('#due').textContent=`${S.currency} · Due ${S.meta.due}`;
+  document.title=`Invoice ${S.meta.no}`;
+}
+
+const page=$('#page');
+page.addEventListener('input',e=>{
+  const t=e.target;
+  if(t.dataset.p)set(t.dataset.p,t.textContent);
+  else if(t.dataset.f){const it=S.items[+t.dataset.i];it[t.dataset.f]=t.matches('input')?(parseFloat(t.value)||0):t.textContent}
+  else return;
+  save();totals();
+});
+page.addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&e.target.classList.contains('ed')&&!e.target.classList.contains('multi'))e.preventDefault();
+});
+page.addEventListener('click',e=>{
+  const rm=e.target.closest('[data-rm]');
+  if(rm){S.items.splice(+rm.dataset.rm,1);save();render();return}
+  if(e.target.closest('#add')){
+    S.items.push({title:'New service',desc:'Describe the scope',qty:1,days:1,rate:0});
+    save();render();
+    const ts=document.querySelectorAll('.svc .t');const last=ts[ts.length-1];
+    last.focus();getSelection().selectAllChildren(last);
+  }
+});
+$('#cur').addEventListener('change',e=>{S.currency=e.target.value;save();render()});
+$('#tax').addEventListener('input',e=>{S.tax=parseFloat(e.target.value)||0;save();totals()});
+$('#reset').addEventListener('click',()=>{if(confirm('Reset the invoice to the sample details?')){S=structuredClone(DEF);save();render()}});
+// Scale the invoice down if its content is taller than one A4 page
+function fit(){
+  const p=$('#page');
+  p.style.setProperty('--f',1);
+  p.style.minHeight='0';p.style.height='auto';
+  const H=p.scrollHeight,max=296*96/25.4;
+  p.style.minHeight='';p.style.height='';
+  p.style.setProperty('--f',H>max?Math.floor(max/H*1000)/1000:1);
+}
+window.addEventListener('beforeprint',fit);
+window.addEventListener('afterprint',()=>$('#page').style.removeProperty('--f'));
+$('#print').addEventListener('click',()=>window.print());
+render();
+</script>
+</body>
+</html>
