@@ -57,8 +57,9 @@ label{display:block;font-size:10px;font-weight:700;letter-spacing:.2em;text-tran
 .tin{min-width:620px}
 .row{display:grid;grid-template-columns:minmax(0,1fr) 72px 72px 98px 92px;gap:8px;align-items:center}
 .head{padding-bottom:14px;border-bottom:1.5px solid var(--ink)}
-.head span{font-size:10px;font-weight:700;letter-spacing:.18em;color:var(--mute)}
-.head span:last-child{text-align:right}
+.head>span{font-size:10px;font-weight:700;letter-spacing:.18em;color:var(--mute);text-transform:uppercase;min-width:0}
+.head>span:last-child{text-align:right}
+.head .ed{min-width:2ch}
 .item{padding:15px 0;border-bottom:1px solid var(--line)}
 .item:last-of-type{border-bottom:1.5px solid var(--ink)}
 .svc{display:grid;grid-template-columns:28px minmax(0,1fr);align-items:start}
@@ -140,7 +141,8 @@ const DEF={
   label:'Digital marketing services',
   title:'Invoice',
   subline:'Meta ads management, creatives & performance reporting for June 2025.',
-  meta:{no:'AS-2025-042',issue:'24 May 2025',period:'01–30 June',due:'31 May 2025'},
+  meta:{no:'AS-2025-042',issue:'24 May 2025'},
+  heads:{svc:'SERVICE & SCOPE',qty:'POSTERS',days:'RUN DAYS',rate:'RATE / POSTER',amt:'AMOUNT'},
   client:{name:'Northstar Coffee Co.',contact:'Maya Bennett',email:'hello@northstar.co'},
   me:{name:'Aswani',web:'aswani.digital',phone:'+1 202 555 0184'},
   items:[
@@ -153,7 +155,7 @@ const DEF={
 };
 const $=s=>document.querySelector(s);
 let S=load();
-function load(){try{const s=JSON.parse(localStorage.getItem(KEY));if(s&&s.items)return s}catch(e){}return structuredClone(DEF)}
+function load(){try{const s=JSON.parse(localStorage.getItem(KEY));if(s&&s.items){s.heads=Object.assign({},DEF.heads,s.heads||{});return s}}catch(e){}return structuredClone(DEF)}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 const get=p=>p.split('.').reduce((o,k)=>o&&o[k],S);
 const set=(p,v)=>{const a=p.split('.'),l=a.pop();a.reduce((o,k)=>o[k],S)[l]=v};
@@ -175,7 +177,7 @@ function render(){
   <div class="subline">${ed('subline','multi')}</div>
 
   <section class="meta">
-    ${[['Invoice no.','meta.no'],['Issue date','meta.issue'],['Service period','meta.period'],['Payment due','meta.due','acc']]
+    ${[['Invoice no.','meta.no'],['Issue date','meta.issue']]
       .map(([l,p,c])=>`<div><label>${l}</label>${ed(p,c||'')}</div>`).join('')}
   </section>
 
@@ -185,15 +187,15 @@ function render(){
   </section>
 
   <section class="tbl"><div class="tin">
-    <div class="row head"><span>SERVICE &amp; SCOPE</span><span>POSTERS</span><span>RUN DAYS</span><span>RATE / POSTER</span><span>AMOUNT</span></div>
+    <div class="row head">${['svc','qty','days','rate','amt'].map(k=>`<span>${ed('heads.'+k,'','Heading')}</span>`).join('')}</div>
     ${S.items.map((it,i)=>`
     <div class="row item">
       <div class="svc">
         <button class="num" data-rm="${i}" title="Remove this service" aria-label="Remove service ${i+1}"><b>${String(i+1).padStart(2,'0')}</b><i>×</i></button>
         <div>${edi(i,'title','t')}${edi(i,'desc','d')}</div>
       </div>
-      <div class="cell"><input class="pill" type="number" min="0" step="any" data-i="${i}" data-f="qty" value="${esc(it.qty)}" aria-label="Posters"></div>
-      <div class="cell"><input class="pill" type="number" min="0" step="any" data-i="${i}" data-f="days" value="${esc(it.days)}" aria-label="Run days"></div>
+      <div class="cell"><input class="pill" type="number" min="0" step="any" data-i="${i}" data-f="qty" value="${esc(it.qty)}" aria-label="${esc(S.heads.qty)}"></div>
+      <div class="cell"><input class="pill" type="number" min="0" step="any" data-i="${i}" data-f="days" value="${esc(it.days)}" aria-label="${esc(S.heads.days)}"></div>
       <div class="cell"><em>${sym}</em><input class="pill" type="number" min="0" step="any" data-i="${i}" data-f="rate" value="${esc(it.rate)}" aria-label="Rate"></div>
       <div class="amt" data-amt="${i}"></div>
     </div>`).join('')}
@@ -223,7 +225,7 @@ function totals(){
   $('#taxRow').hidden=!(t>0);
   $('#taxL').textContent=`Tax (${t}%)`;$('#taxV').textContent=fmt(tax);
   $('#total').textContent=fmt(sub+tax);
-  $('#due').textContent=`${S.currency} · Due ${S.meta.due}`;
+  $('#due').textContent=S.currency;
   document.title=`Invoice ${S.meta.no}`;
 }
 
