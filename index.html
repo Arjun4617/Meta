@@ -51,11 +51,12 @@ label{display:block;font-size:10px;font-weight:700;letter-spacing:.2em;text-tran
 .parties{display:grid;grid-template-columns:1fr 1fr;gap:24px;padding:32px 0 28px;border-bottom:1px solid var(--line);margin:0 -48px;padding-left:48px;padding-right:48px}
 .pn{margin:8px 0 4px;font-size:18px;font-weight:700}
 .pm{font-size:13px;color:var(--mute);line-height:1.55}
+.pby{margin-top:8px;font-size:11px}
 
 /* table */
 .tbl{overflow-x:auto;margin-top:30px}
-.tin{min-width:620px}
-.row{display:grid;grid-template-columns:minmax(0,1fr) 72px 72px 98px 92px;gap:8px;align-items:center}
+.tin{min-width:640px}
+.row{display:grid;grid-template-columns:minmax(0,1fr) 72px 72px 98px 112px;gap:8px;align-items:center}
 .head{padding-bottom:14px;border-bottom:1.5px solid var(--ink)}
 .head>span{font-size:10px;font-weight:700;letter-spacing:.18em;color:var(--mute);text-transform:uppercase;min-width:0}
 .head>span:last-child{text-align:right}
@@ -73,7 +74,7 @@ label{display:block;font-size:10px;font-weight:700;letter-spacing:.2em;text-tran
 .pill::-webkit-inner-spin-button,.pill::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
 .pill:focus{outline:2px solid #b9b5f5}
 .cell em{position:absolute;left:11px;top:50%;transform:translateY(-50%);font-style:normal;font-size:11px;color:var(--mute)}
-.amt{text-align:right;font-size:18px;font-weight:800;white-space:nowrap}
+.pill.amtin{font-size:16px;font-weight:800;padding-left:26px}
 .add{all:unset;cursor:pointer;display:inline-block;margin-top:16px;font-size:13px;font-weight:700;color:var(--accent)}
 .add:hover{text-decoration:underline}
 
@@ -133,28 +134,31 @@ label{display:block;font-size:10px;font-weight:700;letter-spacing:.2em;text-tran
 <main class="page" id="page"></main>
 
 <script>
-const KEY='invoice-builder-v1';
+const KEY='invoice-builder-v3';
+function today(){return new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'})}
 const SYM={INR:'₹',USD:'$',EUR:'€',GBP:'£'};
 const DEF={
   currency:'INR',tax:0,
   brand:{initials:'AS',name:'Aswani',role:'Freelance Digital Marketer'},
   label:'Digital marketing services',
   title:'Invoice',
-  subline:'Meta ads management, creatives & performance reporting for June 2025.',
-  meta:{no:'AS-2025-042',issue:'24 May 2025'},
+  subline:'Meta ads management, creatives & performance reporting for 2026.',
+  meta:{no:'AS-2025-042',issue:today()},
   heads:{svc:'SERVICE & SCOPE',qty:'POSTERS',days:'RUN DAYS',rate:'RATE / POSTER',amt:'AMOUNT'},
-  client:{name:'Northstar Coffee Co.',contact:'Maya Bennett',email:'hello@northstar.co'},
+  client:{name:'AGC Car Accessories',address:'Ashokapuram, Calicut'},
   me:{name:'Aswani',web:'aswani.digital',phone:'+1 202 555 0184'},
   items:[
-    {title:'Meta Ads Management',desc:'Facebook & Instagram · Campaign setup & targeting',qty:4,days:30,rate:12500},
-    {title:'Social Media Creatives',desc:'Custom static poster design · Includes 2 revisions',qty:8,days:1,rate:800},
-    {title:'Performance Report',desc:'Monthly analytics and optimization summary',qty:1,days:30,rate:3500}
+    {title:'Meta Ads Management',desc:'Facebook & Instagram · Campaign setup & targeting',qty:4,days:30,rate:12500,amt:50000},
+    {title:'Social Media Creatives',desc:'Custom static poster design · Includes 2 revisions',qty:8,days:1,rate:800,amt:6400},
+    {title:'Performance Report',desc:'Monthly analytics and optimization summary',qty:1,days:30,rate:3500,amt:3500}
   ],
-  note:'Ad spend is paid directly by the client to Meta and is not included in this invoice. The management fee covers campaign setup, audience research, daily monitoring and weekly optimization. Poster pricing includes design only.',
-  pay:{method:'Bank transfer / UPI',account:'Aswani · 0042 8891 72',terms:'100% advance · Work starts after payment'}
+  note:'Meta ad amount bill will be sent once the campaign is over. Any excess amount will be returned once the campaign is over.',
+  pay:{method:'Bank transfer / UPI',account:'GPay: Aswani +91 85940 30527',terms:'100% advance, kindly · Work begins on payment'}
 };
 const $=s=>document.querySelector(s);
 let S=load();
+if(S.pay.terms==='100% advance · Work starts after payment'||S.pay.terms==='Kindly pay 100% in advance · We will begin the work once payment is received, thank you!')S.pay.terms=DEF.pay.terms;
+if(!S.meta.issueManual)S.meta.issue=today();
 function load(){try{const s=JSON.parse(localStorage.getItem(KEY));if(s&&s.items){s.heads=Object.assign({},DEF.heads,s.heads||{});return s}}catch(e){}return structuredClone(DEF)}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 const get=p=>p.split('.').reduce((o,k)=>o&&o[k],S);
@@ -182,8 +186,8 @@ function render(){
   </section>
 
   <section class="parties">
-    <div><label>Prepared for</label><div class="pn">${ed('client.name')}</div><div class="pm">${ed('client.contact','multi')}${ed('client.email','multi')}</div></div>
-    <div><label>Prepared by</label><div class="pn">${ed('me.name')}</div><div class="pm">${ed('me.web','multi')}${ed('me.phone','multi')}</div></div>
+    <div><label>Prepared for</label><div class="pn">${ed('client.name')}</div><div class="pm">${ed('client.address','multi')}</div></div>
+    <div><label>Prepared by</label><div class="pm pby">${ed('me.web')}</div></div>
   </section>
 
   <section class="tbl"><div class="tin">
@@ -197,7 +201,7 @@ function render(){
       <div class="cell"><input class="pill" type="number" min="0" step="any" data-i="${i}" data-f="qty" value="${esc(it.qty)}" aria-label="${esc(S.heads.qty)}"></div>
       <div class="cell"><input class="pill" type="number" min="0" step="any" data-i="${i}" data-f="days" value="${esc(it.days)}" aria-label="${esc(S.heads.days)}"></div>
       <div class="cell"><em>${sym}</em><input class="pill" type="number" min="0" step="any" data-i="${i}" data-f="rate" value="${esc(it.rate)}" aria-label="Rate"></div>
-      <div class="amt" data-amt="${i}"></div>
+      <div class="cell"><em>${sym}</em><input class="pill amtin" type="number" min="0" step="any" data-i="${i}" data-f="amt" value="${esc(it.amt)}" aria-label="${esc(S.heads.amt)}"></div>
     </div>`).join('')}
     <button class="add" id="add">+ Add another service</button>
   </div></section>
@@ -219,7 +223,7 @@ function render(){
 
 function totals(){
   let sub=0;
-  S.items.forEach((it,i)=>{const a=(+it.qty||0)*(+it.rate||0);sub+=a;const el=document.querySelector(`[data-amt="${i}"]`);if(el)el.textContent=fmt(a)});
+  S.items.forEach((it,i)=>{sub+=(+it.amt||0)});
   const t=+S.tax||0,tax=sub*t/100;
   $('#sub').textContent=fmt(sub);
   $('#taxRow').hidden=!(t>0);
@@ -232,7 +236,7 @@ function totals(){
 const page=$('#page');
 page.addEventListener('input',e=>{
   const t=e.target;
-  if(t.dataset.p)set(t.dataset.p,t.textContent);
+  if(t.dataset.p){set(t.dataset.p,t.textContent);if(t.dataset.p==='meta.issue')S.meta.issueManual=t.textContent.trim()!==''}
   else if(t.dataset.f){const it=S.items[+t.dataset.i];it[t.dataset.f]=t.matches('input')?(parseFloat(t.value)||0):t.textContent}
   else return;
   save();totals();
@@ -244,7 +248,7 @@ page.addEventListener('click',e=>{
   const rm=e.target.closest('[data-rm]');
   if(rm){S.items.splice(+rm.dataset.rm,1);save();render();return}
   if(e.target.closest('#add')){
-    S.items.push({title:'New service',desc:'Describe the scope',qty:1,days:1,rate:0});
+    S.items.push({title:'New service',desc:'Describe the scope',qty:1,days:1,rate:0,amt:0});
     save();render();
     const ts=document.querySelectorAll('.svc .t');const last=ts[ts.length-1];
     last.focus();getSelection().selectAllChildren(last);
